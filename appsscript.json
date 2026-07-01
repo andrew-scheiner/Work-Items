@@ -1,0 +1,34 @@
+{
+  "timeZone": "Europe/Madrid",
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "dependencies": {
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "Drive",
+        "serviceId": "drive",
+        "version": "v3"
+      }
+    ],
+    "libraries": [
+      {
+        "userSymbol": "GASConfigLibrary",
+        "version": "0",
+        "libraryId": "19mt3oek1jSRRq97idSa9vzDuYtO8o7NYAxH-3cIVwj24I_02l5CAgHY4",
+        "developmentMode": true
+      },
+      {
+        "userSymbol": "GASLibrary",
+        "version": "0",
+        "libraryId": "124dIgQdSYpMXAf9J0vFewzyHG0PopddN50UQLw0d1wOZz89rZLEpkMAE",
+        "developmentMode": true
+      }
+    ]
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/script.container.ui",
+    "https://www.googleapis.com/auth/script.scriptapp"
+  ]
+}
