@@ -1,14 +1,18 @@
-﻿/**
- * Vanilla Google Apps Script template entry point.
- * Replace or extend this file with your project's functions.
- */
-function onOpen(e) {
-    const ui = SpreadsheetApp.getUi();
-    ui.createMenu('Template')
-        .addItem('Say Hello', 'sayHello')
-        .addToUi();
+﻿function createMenu() {
+  const ui = SpreadsheetApp.getUi();
+  let customMenu = ui.createMenu('Custom')
+    .addItem('Backup Spreadsheet', 'backupSpreadsheet')
+    .addItem('Hide Done Actions', 'hideDoneActions')
+    .addItem('Reset Filter', 'resetFilter')
+    .addItem('Sort Sheet','sortActiveSheet')
+    .addSeparator()
+    .addSubMenu(ui.createMenu('Update Data Source(s)')
+      .addItem('All', 'refreshDataSources')
+      .addItem('Initiatives','setInitiativeNameDropdownList')
+      .addItem('Priority', 'setPriorityDropdownList')
+      .addItem('Status','setStatusDropdownList'));
+    customMenu.addToUi();
 }
 
-function sayHello() {
-    SpreadsheetApp.getUi().alert('Hello from the GAS template!');
-}
+  
+  

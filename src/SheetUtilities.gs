@@ -1,9 +1,21 @@
-﻿// Placeholder sheet utility functions.
+﻿function backupSpreadsheet() {
+  GASLibrary.copySpreadsheetToDrive(DRIVE_COPY_FOLDER_ID, "Backup");
+}
+
+
+function hideDoneActions() {
+  GASLibrary.hideDoneActions();
+}
 
 function resetFilter() {
-    // Add reset filter logic here.
+  GASLibrary.resetFilter();
+}
+
+function showNamedRangesInSheetOrder(){
+  GASLibrary.showNamedRangesInSheetOrder()
 }
 
 function sortActiveSheet() {
-    // Add sheet sorting logic here.
+  GASLibrary.sortSheetByConfig(SS, SORT_CONFIGS);
+  hideDoneActions();
 }
