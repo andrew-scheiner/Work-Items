@@ -11,5 +11,5 @@ A Google Apps Script project created from the GAS template and connected to Apps
 ## Project files
 
 - `src/` contains the Apps Script source files
-- `appsscript.json` defines the Apps Script project manifest
+- `appsscript.json` defines the Apps Script project manifest and stays in the project root (not inside `src/`)
 - `.clasp.json` links this folder to the Apps Script project
