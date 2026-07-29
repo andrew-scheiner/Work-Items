@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      :root {
+        --bg: #f7f4ed;
+        --panel: #ffffff;
+        --text: #1e2723;
+        --muted: #5f6f66;
+        --accent: #1d6f42;
+        --accent-strong: #14512f;
+        --border: #d8dfd9;
+      }
+
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text);
+        background: radial-gradient(circle at top right, #e8f1e5, var(--bg) 60%);
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
+      }
+
+      h2 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      p {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+
+      select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--text);
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        padding: 9px 10px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .apply {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .apply:hover {
+        background: var(--accent-strong);
+      }
+
+      .clear {
+        background: #e8ece9;
+        color: var(--text);
+      }
+
+      .status {
+        margin-top: 10px;
+        min-height: 18px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .error {
+        color: #a1260d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h2>WorkItems Filter</h2>
+      <p>Filter rows by the Initiative column on the WorkItems sheet.</p>
+
+      <label for="initiativeSelect">Initiative</label>
+      <select id="initiativeSelect"></select>
+
+      <div class="actions">
+        <button class="apply" onclick="applyFilter()">Apply</button>
+        <button class="clear" onclick="clearFilter()">Clear</button>
+      </div>
+
+      <div id="status" class="status"></div>
+    </div>
+
+    <script>
+      function setStatus(message, isError) {
+        const status = document.getElementById('status');
+        status.textContent = message || '';
+        status.className = isError ? 'status error' : 'status';
+      }
+
+      function loadInitiatives() {
+        setStatus('Loading initiatives...');
+        google.script.run
+          .withSuccessHandler(function(items) {
+            const select = document.getElementById('initiativeSelect');
+            select.innerHTML = '';
+
+            const allOption = document.createElement('option');
+            allOption.value = '';
+            allOption.textContent = '-- All Initiatives --';
+            select.appendChild(allOption);
+
+            items.forEach(function(item) {
+              const opt = document.createElement('option');
+              opt.value = item;
+              opt.textContent = item;
+              select.appendChild(opt);
+            });
+
+            setStatus('Ready');
+          })
+          .withFailureHandler(function(err) {
+            setStatus(err && err.message ? err.message : 'Failed to load initiatives.', true);
+          })
+          .getWorkItemsInitiatives();
+      }
+
+      function applyFilter() {
+        const value = document.getElementById('initiativeSelect').value;
+        setStatus('Applying filter...');
+
+        google.script.run
+          .withSuccessHandler(function() {
+            setStatus(value ? 'Filter applied.' : 'Filter cleared.');
+          })
+          .withFailureHandler(function(err) {
+            setStatus(err && err.message ? err.message : 'Failed to apply filter.', true);
+          })
+          .filterWorkItemsByInitiative(value);
+      }
+
+      function clearFilter() {
+        document.getElementById('initiativeSelect').value = '';
+        applyFilter();
+      }
+
+      loadInitiatives();
+    </script>
+  </body>
+</html>
