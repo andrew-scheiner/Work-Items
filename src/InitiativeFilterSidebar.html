@@ -41,14 +41,26 @@
         line-height: 1.4;
       }
 
+      .field-list {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .field-row {
+        display: grid;
+        gap: 4px;
+      }
+
       label {
         display: block;
         font-size: 12px;
-        margin-bottom: 6px;
+        font-weight: 600;
       }
 
-      select {
+      input {
         width: 100%;
+        box-sizing: border-box;
         padding: 8px;
         border: 1px solid var(--border);
         border-radius: 8px;
@@ -100,10 +112,9 @@
   <body>
     <div class="panel">
       <h2>WorkItems Filter</h2>
-      <p>Filter rows by the Initiative column on the WorkItems sheet.</p>
+      <p>Enter values for any fields below. Any populated field will be used to filter the WorkItems sheet.</p>
 
-      <label for="initiativeSelect">Initiative</label>
-      <select id="initiativeSelect"></select>
+      <div id="fieldList" class="field-list"></div>
 
       <div class="actions">
         <button class="apply" onclick="applyFilter()">Apply</button>
@@ -114,59 +125,89 @@
     </div>
 
     <script>
+      let columns = [];
+
       function setStatus(message, isError) {
         const status = document.getElementById('status');
         status.textContent = message || '';
         status.className = isError ? 'status error' : 'status';
       }
 
-      function loadInitiatives() {
-        setStatus('Loading initiatives...');
+      function renderFields(items) {
+        const container = document.getElementById('fieldList');
+        container.innerHTML = '';
+
+        items.forEach(function(column) {
+          const row = document.createElement('div');
+          row.className = 'field-row';
+
+          const label = document.createElement('label');
+          label.textContent = column;
+          label.setAttribute('for', 'field-' + column.replace(/[^a-z0-9]+/gi, '-').toLowerCase());
+
+          const input = document.createElement('input');
+          input.id = label.getAttribute('for');
+          input.type = 'text';
+          input.setAttribute('data-column', column);
+
+          row.appendChild(label);
+          row.appendChild(input);
+          container.appendChild(row);
+        });
+      }
+
+      function loadColumns() {
+        setStatus('Loading fields...');
         google.script.run
           .withSuccessHandler(function(items) {
-            const select = document.getElementById('initiativeSelect');
-            select.innerHTML = '';
-
-            const allOption = document.createElement('option');
-            allOption.value = '';
-            allOption.textContent = '-- All Initiatives --';
-            select.appendChild(allOption);
-
-            items.forEach(function(item) {
-              const opt = document.createElement('option');
-              opt.value = item;
-              opt.textContent = item;
-              select.appendChild(opt);
-            });
-
+            columns = items || [];
+            renderFields(columns);
             setStatus('Ready');
           })
           .withFailureHandler(function(err) {
-            setStatus(err && err.message ? err.message : 'Failed to load initiatives.', true);
+            setStatus(err && err.message ? err.message : 'Failed to load fields.', true);
           })
-          .getWorkItemsInitiatives();
+          .getWorkItemsFilterColumns();
+      }
+
+      function collectFilters() {
+        const filters = {};
+        const inputs = document.querySelectorAll('#fieldList input[data-column]');
+
+        inputs.forEach(function(input) {
+          const column = input.getAttribute('data-column');
+          const value = input.value.trim();
+          if (column && value) {
+            filters[column] = value;
+          }
+        });
+
+        return filters;
       }
 
       function applyFilter() {
-        const value = document.getElementById('initiativeSelect').value;
+        const filters = collectFilters();
         setStatus('Applying filter...');
 
         google.script.run
           .withSuccessHandler(function() {
-            setStatus(value ? 'Filter applied.' : 'Filter cleared.');
+            setStatus(Object.keys(filters).length ? 'Filter applied.' : 'Filter cleared.');
           })
           .withFailureHandler(function(err) {
             setStatus(err && err.message ? err.message : 'Failed to apply filter.', true);
           })
-          .filterWorkItemsByInitiative(value);
+          .filterWorkItemsByFields(filters);
       }
 
       function clearFilter() {
-        document.getElementById('initiativeSelect').value = '';
+        const inputs = document.querySelectorAll('#fieldList input[data-column]');
+        inputs.forEach(function(input) {
+          input.value = '';
+        });
         applyFilter();
       }
 
-      loadInitiatives();
+      loadColumns();
     </script>
   </body>
 </html>

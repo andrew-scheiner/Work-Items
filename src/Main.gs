@@ -4,7 +4,7 @@
     .addItem('Backup Spreadsheet', 'backupSpreadsheet')
     .addItem('Hide Done Actions', 'hideDoneActions')
     .addItem('Reset Filter', 'resetFilter')
-    .addItem('Filter WorkItems by Initiative', 'showWorkItemsInitiativeSidebar')
+    .addItem('Filter WorkItems', 'showWorkItemsInitiativeSidebar')
     .addItem('Sort Sheet','sortActiveSheet')
     .addSeparator()
     .addSubMenu(ui.createMenu('Update Data Source(s)')
@@ -30,37 +30,23 @@ function showWorkItemsInitiativeSidebar() {
   SpreadsheetApp.getUi().showSidebar(html);
 }
 
-function getWorkItemsInitiatives() {
+function getWorkItemsFilterColumns() {
   const sheet = SS.getSheetByName('WorkItems');
   if (!sheet) {
     throw new Error('Sheet "WorkItems" was not found.');
   }
 
-  const dataRange = sheet.getDataRange();
-  const values = dataRange.getValues();
-  if (values.length < 2) {
+  const values = sheet.getDataRange().getValues();
+  if (!values.length) {
     return [];
   }
 
-  const headers = values[0].map(h => String(h).trim());
-  const initiativeColIndex = headers.indexOf('Initiative');
-  if (initiativeColIndex === -1) {
-    throw new Error('Column "Initiative" was not found on WorkItems.');
-  }
-
-  const unique = new Set();
-  for (let i = 1; i < values.length; i++) {
-    const cell = values[i][initiativeColIndex];
-    const initiative = String(cell == null ? '' : cell).trim();
-    if (initiative) {
-      unique.add(initiative);
-    }
-  }
-
-  return Array.from(unique).sort((a, b) => a.localeCompare(b));
+  return values[0]
+    .map(header => String(header == null ? '' : header).trim())
+    .filter(Boolean);
 }
 
-function filterWorkItemsByInitiative(initiative) {
+function filterWorkItemsByFields(filters) {
   const sheet = SS.getSheetByName('WorkItems');
   if (!sheet) {
     throw new Error('Sheet "WorkItems" was not found.');
@@ -71,28 +57,34 @@ function filterWorkItemsByInitiative(initiative) {
     return;
   }
 
-  const headers = dataRange.getValues()[0].map(h => String(h).trim());
-  const initiativeCol = headers.indexOf('Initiative') + 1;
-  if (initiativeCol === 0) {
-    throw new Error('Column "Initiative" was not found on WorkItems.');
+  const headers = dataRange.getValues()[0].map(header => String(header == null ? '' : header).trim());
+  const normalizedFilters = filters && typeof filters === 'object' ? filters : {};
+  const activeFilters = Object.entries(normalizedFilters)
+    .map(([header, value]) => ({
+      header: String(header == null ? '' : header).trim(),
+      value: String(value == null ? '' : value).trim()
+    }))
+    .filter(entry => entry.header && entry.value);
+
+  const existingFilter = sheet.getFilter();
+  if (existingFilter) {
+    existingFilter.remove();
   }
 
-  let filter = sheet.getFilter();
-  if (!filter) {
-    filter = dataRange.createFilter();
-  }
-
-  const selected = String(initiative == null ? '' : initiative).trim();
-  if (!selected) {
-    filter.removeColumnFilterCriteria(initiativeCol);
+  if (!activeFilters.length) {
     return;
   }
 
-  const criteria = SpreadsheetApp.newFilterCriteria()
-    .whenTextEqualTo(selected)
-    .build();
-
-  filter.setColumnFilterCriteria(initiativeCol, criteria);
+  const filter = dataRange.createFilter();
+  activeFilters.forEach(entry => {
+    const columnIndex = headers.indexOf(entry.header) + 1;
+    if (columnIndex > 0) {
+      const criteria = SpreadsheetApp.newFilterCriteria()
+        .whenTextContains(entry.value)
+        .build();
+      filter.setColumnFilterCriteria(columnIndex, criteria);
+    }
+  });
 }
 
   
