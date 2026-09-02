@@ -1,19 +1,23 @@
 ﻿function createMenu() {
   const ui = SpreadsheetApp.getUi();
-  let customMenu = ui.createMenu('Custom')
+  let customMenu = ui
+    .createMenu('Custom')
     .addItem('Backup Spreadsheet', 'backupSpreadsheet')
     .addItem('Hide Done Actions', 'hideDoneActions')
     .addItem('Reset Filter', 'resetFilter')
     .addItem('Filter WorkItems', 'showWorkItemsInitiativeSidebar')
-    .addItem('Sort Sheet','sortActiveSheet')
+    .addItem('Sort Sheet', 'sortActiveSheet')
     .addSeparator()
-    .addSubMenu(ui.createMenu('Update Data Source(s)')
-      .addItem('All', 'refreshDataSources')
-      .addItem('Config Items', 'importConfigItems')
-      .addItem('Initiatives','setInitiativeNameDropdownList')
-      .addItem('Priority', 'setPriorityDropdownList')
-      .addItem('Status','setStatusDropdownList'));
-    customMenu.addToUi();
+    .addSubMenu(
+      ui
+        .createMenu('Update Data Source(s)')
+        .addItem('All', 'refreshDataSources')
+        .addItem('Config Items', 'importConfigItems')
+        .addItem('Initiatives', 'setInitiativeNameDropdownList')
+        .addItem('Priority', 'setPriorityDropdownList')
+        .addItem('Status', 'setStatusDropdownList')
+    );
+  customMenu.addToUi();
 }
 
 function showWorkItemsInitiativeSidebar() {
@@ -41,9 +45,7 @@ function getWorkItemsFilterColumns() {
     return [];
   }
 
-  return values[0]
-    .map(header => String(header == null ? '' : header).trim())
-    .filter(Boolean);
+  return values[0].map((header) => String(header == null ? '' : header).trim()).filter(Boolean);
 }
 
 function filterWorkItemsByFields(filters) {
@@ -57,14 +59,16 @@ function filterWorkItemsByFields(filters) {
     return;
   }
 
-  const headers = dataRange.getValues()[0].map(header => String(header == null ? '' : header).trim());
+  const headers = dataRange
+    .getValues()[0]
+    .map((header) => String(header == null ? '' : header).trim());
   const normalizedFilters = filters && typeof filters === 'object' ? filters : {};
   const activeFilters = Object.entries(normalizedFilters)
     .map(([header, value]) => ({
       header: String(header == null ? '' : header).trim(),
-      value: String(value == null ? '' : value).trim()
+      value: String(value == null ? '' : value).trim(),
     }))
-    .filter(entry => entry.header && entry.value);
+    .filter((entry) => entry.header && entry.value);
 
   const existingFilter = sheet.getFilter();
   if (existingFilter) {
@@ -76,16 +80,11 @@ function filterWorkItemsByFields(filters) {
   }
 
   const filter = dataRange.createFilter();
-  activeFilters.forEach(entry => {
+  activeFilters.forEach((entry) => {
     const columnIndex = headers.indexOf(entry.header) + 1;
     if (columnIndex > 0) {
-      const criteria = SpreadsheetApp.newFilterCriteria()
-        .whenTextContains(entry.value)
-        .build();
+      const criteria = SpreadsheetApp.newFilterCriteria().whenTextContains(entry.value).build();
       filter.setColumnFilterCriteria(columnIndex, criteria);
     }
   });
 }
-
-  
-  
